@@ -1,3 +1,6 @@
+[![Published on Vaadin  Directory](https://img.shields.io/badge/Vaadin%20Directory-published-00b4f0.svg)](https://vaadin.com/directory/component/shiro-vaadin-integration)
+[![Stars on vaadin.com/directory](https://img.shields.io/vaadin-directory/star/shiro-vaadin-integration.svg)](https://vaadin.com/directory/component/shiro-vaadin-integration)
+
 # shiro-vaadin-integration
 This library allows you to use Vaadin 10's Router with Apache Shiro.
 

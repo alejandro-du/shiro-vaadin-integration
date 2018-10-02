@@ -7,11 +7,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-public class CustomBodyHttpServletRequestWrapper extends HttpServletRequestWrapper {
+public class CustomHttpServletRequestWrapper extends HttpServletRequestWrapper {
 
     private String body;
 
-    public CustomBodyHttpServletRequestWrapper(HttpServletRequest request, String body) {
+    public CustomHttpServletRequestWrapper(HttpServletRequest request, String body) {
         super(request);
         this.body = body;
     }

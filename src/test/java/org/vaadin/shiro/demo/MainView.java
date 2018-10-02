@@ -29,6 +29,7 @@ public class MainView extends VerticalLayout {
         add(
                 new RouterLink("View 1", View1View.class),
                 new RouterLink("View 2", View2View.class),
+                new Button("View 2 (Router.navigateTo()", e -> UI.getCurrent().navigate("view2")),
                 new Button("Log out", e -> logOut())
         );
     }

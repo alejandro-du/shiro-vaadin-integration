@@ -19,7 +19,7 @@ public class VaadinShiroFilter extends ShiroFilter {
             e.printStackTrace();
         }
 
-        return new CustomBodyHttpServletRequestWrapper((HttpServletRequest) super.wrapServletRequest(orig), body);
+        return new CustomHttpServletRequestWrapper((HttpServletRequest) super.wrapServletRequest(orig), body);
     }
 
 }

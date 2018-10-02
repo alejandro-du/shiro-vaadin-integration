@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.servlet.Filter;
+import javax.servlet.FilterChain;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
@@ -73,8 +74,44 @@ public class VaadinNavigationRolesAuthorizationFilter extends AdviceFilter imple
         if ("/".equals(uri)) {
             return handleFromBody(uri, httpServletRequest, httpServletResponse);
         } else {
-            return handleFromUri(uri, httpServletRequest, httpServletResponse);
+            return handleFromUri(uri, httpServletResponse);
         }
+    }
+
+    @Override
+    protected void executeChain(ServletRequest request, ServletResponse response, FilterChain chain) throws Exception {
+        HttpServletResponse httpServletResponse = (HttpServletResponse) response;
+        CustomServletResponseWrapper wrappedResponse = new CustomServletResponseWrapper(httpServletResponse);
+        super.executeChain(request, wrappedResponse, chain);
+
+        if (wrappedResponse.getContentType().equals(JsonConstants.JSON_CONTENT_TYPE)) {
+            String output = wrappedResponse.getBranch().toString();
+            wrappedResponse.getBranch().close();
+
+            if (output.startsWith("for(;;);")) {
+                output = output.substring("for(;;);".length());
+                JsonArray json = JsonUtil.parse(output);
+                JsonArray execute = json.getObject(0).getArray(JsonConstants.UIDL_KEY_EXECUTE);
+
+                if (execute != null) {
+                    for (int i = 0; i < execute.length(); i++) {
+                        JsonArray array = execute.getArray(i);
+                        if (array.length() == 3 && array.getString(2).startsWith("history.pushState") && array.getString(1) != null && !array.getString(1).isEmpty()) {
+                            String location = "/" + array.getString(1);
+                            if (!authorized(location)) {
+                                String content = getRedirectToLoginResponse();
+                                response.getWriter().write(content);
+                                response.setContentLength(content.length());
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        response.getWriter().write(wrappedResponse.getMaster().toString());
+        wrappedResponse.getMaster().close();
     }
 
     protected boolean handleFromBody(String uri, HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -83,17 +120,13 @@ public class VaadinNavigationRolesAuthorizationFilter extends AdviceFilter imple
         boolean authorized = authorized(location);
 
         if (!authorized) {
-            String script = getRedirectJavaScript();
-            if (script == null) {
-                script = "location='" + loginUrl + "'";
-            }
-            response.getWriter().write("for(;;);[{\"execute\":[[\"" + script + "\"],[\"\",\"document.title = $0\"]]}]");
+            response.getWriter().write(getRedirectToLoginResponse());
         }
 
         return authorized;
     }
 
-    protected boolean handleFromUri(String location, HttpServletRequest request, HttpServletResponse response) {
+    protected boolean handleFromUri(String location, HttpServletResponse response) {
         boolean authorized = authorized(location);
 
         if (!authorized) {
@@ -137,6 +170,14 @@ public class VaadinNavigationRolesAuthorizationFilter extends AdviceFilter imple
 
         log.trace("Location: \"" + location + "\" (ignored)");
         return true;
+    }
+
+    private String getRedirectToLoginResponse() {
+        String script = getRedirectJavaScript();
+        if (script == null) {
+            script = "location='" + loginUrl + "'";
+        }
+        return "for(;;);[{\"execute\":[[\"" + script + "\"]]}]";
     }
 
 }

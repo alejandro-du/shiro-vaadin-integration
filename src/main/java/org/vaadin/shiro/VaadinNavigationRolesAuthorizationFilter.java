@@ -84,26 +84,25 @@ public class VaadinNavigationRolesAuthorizationFilter extends AdviceFilter imple
         CustomServletResponseWrapper wrappedResponse = new CustomServletResponseWrapper(httpServletResponse);
         super.executeChain(request, wrappedResponse, chain);
 
-        if (wrappedResponse.getContentType().equals(JsonConstants.JSON_CONTENT_TYPE)) {
-            String output = wrappedResponse.getBranch().toString();
-            wrappedResponse.getBranch().close();
+        String output = wrappedResponse.getBranch().toString();
+        wrappedResponse.getBranch().close();
 
-            if (output.startsWith("for(;;);")) {
-                output = output.substring("for(;;);".length());
-                JsonArray json = JsonUtil.parse(output);
-                JsonArray execute = json.getObject(0).getArray(JsonConstants.UIDL_KEY_EXECUTE);
+        if (output.startsWith("for(;;);")) {
+            output = output.substring("for(;;);".length());
+            JsonArray json = JsonUtil.parse(output);
+            JsonArray execute = json.getObject(0).getArray(JsonConstants.UIDL_KEY_EXECUTE);
 
-                if (execute != null) {
-                    for (int i = 0; i < execute.length(); i++) {
-                        JsonArray array = execute.getArray(i);
-                        if (array.length() == 3 && array.getString(2).startsWith("history.pushState") && array.getString(1) != null && !array.getString(1).isEmpty()) {
-                            String location = "/" + array.getString(1);
-                            if (!authorized(location)) {
-                                String content = getRedirectToLoginResponse();
-                                response.getWriter().write(content);
-                                response.setContentLength(content.length());
-                                return;
-                            }
+            if (execute != null) {
+                for (int i = 0; i < execute.length(); i++) {
+                    JsonArray array = execute.getArray(i);
+                    if (array.length() == 3 && array.getString(2).startsWith("history.pushState") &&
+                            array.getString(1) != null && !array.getString(1).isEmpty()) {
+                        String location = "/" + array.getString(1);
+                        if (!authorized(location)) {
+                            String content = getRedirectToLoginResponse();
+                            response.getWriter().write(content);
+                            response.setContentLength(content.length());
+                            return;
                         }
                     }
                 }
@@ -114,7 +113,8 @@ public class VaadinNavigationRolesAuthorizationFilter extends AdviceFilter imple
         wrappedResponse.getMaster().close();
     }
 
-    protected boolean handleFromBody(String uri, HttpServletRequest request, HttpServletResponse response) throws IOException {
+    protected boolean handleFromBody(String uri, HttpServletRequest request, HttpServletResponse response) throws
+            IOException {
         String locationFromBody = getLocationFromBody(request);
         String location = locationFromBody != null ? locationFromBody : uri;
         boolean authorized = authorized(location);

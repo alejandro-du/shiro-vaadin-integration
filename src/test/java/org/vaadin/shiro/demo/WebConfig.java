@@ -12,7 +12,14 @@ public class WebConfig {
     public static class ShiroListener extends EnvironmentLoaderListener {
     }
 
-    @WebFilter(urlPatterns = "/*")
+    @WebFilter(urlPatterns = "/*",
+            dispatcherTypes = {
+                    DispatcherType.ASYNC,
+                    DispatcherType.ERROR,
+                    DispatcherType.FORWARD,
+                    DispatcherType.INCLUDE,
+                    DispatcherType.REQUEST
+    })
     public static class ShiroFilter extends VaadinShiroFilter {
     }
 

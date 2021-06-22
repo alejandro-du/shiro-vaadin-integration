@@ -19,7 +19,7 @@ public class View1View extends VerticalLayout {}
 public class View2View extends VerticalLayout {}
 ```
 
-Add a `shiro.ini` file in the `resources` directory and set your security configuration. Configure and ese the `VaadinNavigationRolesAuthorizationFilter`. For example:
+Add a `shiro.ini` file in the `resources` directory and set your security configuration. Configure und ese the `VaadinNavigationRolesAuthorizationFilter`. For example:
 
 ```
 [main]
